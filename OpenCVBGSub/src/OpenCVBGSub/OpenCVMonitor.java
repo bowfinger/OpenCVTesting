@@ -1,5 +1,6 @@
 package OpenCVBGSub;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -22,6 +23,10 @@ public class OpenCVMonitor implements ChangeListener {
 	private static int MOG_THRESHOLD_MIN = 0;
 	private static int MOG_THRESHOLD_MAX = 32;
 	private static int MOG_THRESHOLD_INIT = 16;
+	
+	private static double MOG_LEARN_RATE_MIN = 0.01;
+	private static double MOG_LEARN_RATE_MAX = 0.1;
+	private static double MOG_LEARN_RATE_INIT = 0.05;
 	
 	ImageProcessor p;
 	
@@ -60,17 +65,32 @@ public class OpenCVMonitor implements ChangeListener {
 		sliderWindow.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		sliderWindow.setLocation(0, WINDOW_HEIGHT + 10);
 		sliderWindow.setVisible(true);
+		
 		JSlider mogThresholdSlider = new JSlider(JSlider.HORIZONTAL,MOG_THRESHOLD_MIN, MOG_THRESHOLD_MAX, MOG_THRESHOLD_INIT);
+		mogThresholdSlider.putClientProperty("SLIDER_NAME", "MOG_THRESHOLD");
+		mogThresholdSlider.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 		mogThresholdSlider.addChangeListener(this);
-
-		//Turn on labels at major tick marks.
 		mogThresholdSlider.setMajorTickSpacing(8);
 		mogThresholdSlider.setMinorTickSpacing(1);
 		mogThresholdSlider.setPaintTicks(true);
-		//framesPerSecond.setPaintLabels(true);
+		//mogThresholdSlider.setPaintLabels(true);
 		
+		JSlider mogLearnRateSlider = new JSlider(JSlider.HORIZONTAL, (int)(MOG_LEARN_RATE_MIN*100), (int)(MOG_LEARN_RATE_MAX*100), (int)(MOG_LEARN_RATE_INIT*100));
+		mogLearnRateSlider.putClientProperty("SLIDER_NAME", "MOG_LEARN_RATE");
+		mogLearnRateSlider.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+		mogLearnRateSlider.addChangeListener(this);
+		mogLearnRateSlider.addChangeListener(this);
+		mogLearnRateSlider.setMajorTickSpacing(10);
+		mogLearnRateSlider.setMinorTickSpacing(1);
+		mogLearnRateSlider.setPaintTicks(true);
+		//mogLearnRateSlider.setPaintLabels(true);
+		
+		
+		
+		//panel for sliders
 		JPanel sliderPanel = new JPanel();
 		sliderPanel.add(mogThresholdSlider);
+		sliderPanel.add(mogLearnRateSlider);
 		
 		sliderWindow.setContentPane(sliderPanel);
 		
@@ -107,12 +127,12 @@ public class OpenCVMonitor implements ChangeListener {
 					DRAWN_ON_FRAME = p.detectFullBody(NORMAL_FRAME);
 					
 					//bg subtraction
-					FILTERED_FRAME = p.processFrameNegative(NORMAL_FRAME);
+					//FILTERED_FRAME = p.processFrameNegative(NORMAL_FRAME);
 					//difference
 					//FILTERED_FRAME = p.processFrameDifference(NORMAL_FRAME);
 					
-					//mog - FAILS AFTER 35 FRAMES
-					//FILTERED_FRAME = p.processFrameMOG(NORMAL_FRAME);
+					//mog
+					FILTERED_FRAME = p.processFrameMOG(NORMAL_FRAME);
 					
 					//buffer images
 					mainPanel.convertToBufferedImage(DRAWN_ON_FRAME);
@@ -135,9 +155,23 @@ public class OpenCVMonitor implements ChangeListener {
 	
 	public void stateChanged(ChangeEvent e) {
 	    JSlider source = (JSlider)e.getSource();
+	    
+	    
+	    
 	    if (!source.getValueIsAdjusting()) {
-	        int mogThreshold = (int)source.getValue();
-	        p.setMogThreshold(mogThreshold);
+	    	
+	    	switch(source.getClientProperty("SLIDER_NAME").toString()){
+	    		case "MOG_THRESHOLD":
+	    			int mogThreshold = (int)source.getValue();
+	    	        p.setMogThreshold(mogThreshold);
+	    			break;
+	    		case "MOG_LEARN_RATE":
+	    			double mogLearnRate = (double)source.getValue()/100;
+	    	        p.setMogLearnRate(mogLearnRate);
+	    			break;
+	    	}
+	    	
+	        
 	    }
 	}
 }

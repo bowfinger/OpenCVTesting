@@ -17,11 +17,12 @@ public class ImageProcessor {
 	
 	private Mat INITIAL_FRAME;
 	private Mat ACC_BG_IMAGE;
-	private double MOG_LEARN_RATE = 0.01;
+	private double MOG_LEARN_RATE = 0.1;
 	private int MOG_HISTORY = 500;
 	private float MOG_THRESHOLD = 16;
 	private boolean MOG_DETECT_SHADOWS = false;
 	private CascadeClassifier BODY_CASCADE;
+	private BackgroundSubtractorMOG2 MOG = Video.createBackgroundSubtractorMOG2();
 	
 	public ImageProcessor(){
 		//this.INITIAL_FRAME = new Mat();
@@ -42,6 +43,10 @@ public class ImageProcessor {
 	
 	public void setMogThreshold(float value){
 		this.MOG_THRESHOLD = value;
+	}
+	
+	public void setMogLearnRate(double value){
+		this.MOG_LEARN_RATE = value;
 	}
 	
 	//old constructor
@@ -83,13 +88,13 @@ public class ImageProcessor {
 	}
 	
 	public Mat processFrameMOG(Mat inputFrame){
-		BackgroundSubtractorMOG2 mog = Video.createBackgroundSubtractorMOG2();
+		
 		Mat foregroundImage = new Mat();
 		
 		//mixture of gaussians
 		//FAILS
 		//mog.apply(inputFrame, foregroundImage);
-		mog.apply(inputFrame, foregroundImage, MOG_LEARN_RATE);
+		MOG.apply(inputFrame, foregroundImage, MOG_LEARN_RATE);
 		
 		Imgproc.erode(foregroundImage, foregroundImage, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,2)));
 		Imgproc.dilate(foregroundImage, foregroundImage, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,2)));
